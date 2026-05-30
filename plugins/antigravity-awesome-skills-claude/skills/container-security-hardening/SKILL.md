@@ -300,10 +300,12 @@ CMD ["dist/server.js"]
 # Install
 brew install trivy                              # macOS
 apt install trivy                               # Debian/Ubuntu
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
 curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-  -o /tmp/trivy-install.sh
-less /tmp/trivy-install.sh
-sh /tmp/trivy-install.sh
+  -o "$tmpdir/trivy-install.sh"
+sed -n '1,160p' "$tmpdir/trivy-install.sh"
+sh "$tmpdir/trivy-install.sh"
 
 # Scan an image for CVEs
 trivy image myapp:latest
@@ -338,10 +340,12 @@ CVE-2023-5678
 
 ```bash
 # Install
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
 curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
-  -o /tmp/grype-install.sh
-less /tmp/grype-install.sh
-sh /tmp/grype-install.sh
+  -o "$tmpdir/grype-install.sh"
+sed -n '1,160p' "$tmpdir/grype-install.sh"
+sh "$tmpdir/grype-install.sh"
 
 # Scan image
 grype myapp:latest
@@ -784,6 +788,9 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
       ports:
         - port: 3000
   egress:
@@ -793,7 +800,13 @@ spec:
               app: postgres
       ports:
         - port: 5432
-    - to: {}              # Allow DNS
+    - to:                 # Allow only cluster DNS
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
       ports:
         - port: 53
           protocol: UDP

@@ -247,8 +247,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
       - id: set-matrix
         run: |
-          SERVICES=$(ls services/ | jq -R -s -c 'split("\n")[:-1]')
-          echo "matrix={\"service\":$SERVICES}" >> $GITHUB_OUTPUT
+          SERVICES=$(find services -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | jq -R -s -c 'split("\n")[:-1]')
+          printf 'matrix={"service":%s}\n' "$SERVICES" >> "$GITHUB_OUTPUT"
 
   build:
     needs: generate-matrix
@@ -256,7 +256,9 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     runs-on: ubuntu-24.04
     steps:
-      - run: echo "Building ${{ matrix.service }}"
+      - env:
+          SERVICE: ${{ matrix.service }}
+        run: echo "Building $SERVICE"
 ```
 
 ---
@@ -494,7 +496,16 @@ runs:
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npm ci ${{ inputs.install-flags }}
+      env:
+        INSTALL_FLAGS: ${{ inputs.install-flags }}
+      run: |
+        args=()
+        case "$INSTALL_FLAGS" in
+          "") ;;
+          "--ignore-scripts") args+=(--ignore-scripts) ;;
+          *) echo "Unsupported install flags" >&2; exit 1 ;;
+        esac
+        npm ci "${args[@]}"
 
     - name: Build
       shell: bash
@@ -594,8 +605,11 @@ jobs:
     steps:
       - id: get-version
         run: |
-          VERSION=$(cat VERSION)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=$(tr -d '\r\n' < VERSION)
+          case "$VERSION" in
+            ""|*[!0-9A-Za-z._-]*) echo "Invalid VERSION" >&2; exit 1 ;;
+          esac
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
 
       - id: check
         run: |
@@ -610,7 +624,9 @@ jobs:
     if: needs.prepare.outputs.should-deploy == 'true'
     runs-on: ubuntu-24.04
     steps:
-      - run: echo "Building version ${{ needs.prepare.outputs.version }}"
+      - env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: echo "Building version $VERSION"
 ```
 
 ---
@@ -663,6 +679,11 @@ jobs:
 - if: github.event.pull_request.draft == false
   run: echo "Not a draft"
 ```
+
+Never place `${{ ... }}` directly inside `run:` when the value can come from
+PR metadata, workflow inputs, repository files, matrix JSON, or earlier job
+outputs. Put it in `env:` first, validate allowlisted values where possible, and
+reference the shell variable with quotes.
 
 ### 4. Restrict `pull_request_target` Usage
 
@@ -844,7 +865,9 @@ jobs:
       url: https://staging.myapp.com
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
-      - run: ./scripts/deploy.sh staging ${{ needs.push-image.outputs.image-digest }}
+      - env:
+          IMAGE_DIGEST: ${{ needs.push-image.outputs.image-digest }}
+        run: ./scripts/deploy.sh staging "$IMAGE_DIGEST"
 
   # ── Deploy Production (manual approval required) ──────
   deploy-production:
@@ -856,7 +879,9 @@ jobs:
       url: https://myapp.com
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
-      - run: ./scripts/deploy.sh production ${{ needs.push-image.outputs.image-digest }}
+      - env:
+          IMAGE_DIGEST: ${{ needs.push-image.outputs.image-digest }}
+        run: ./scripts/deploy.sh production "$IMAGE_DIGEST"
 ```
 
 ### Pattern 2: Automated Release with Changelog

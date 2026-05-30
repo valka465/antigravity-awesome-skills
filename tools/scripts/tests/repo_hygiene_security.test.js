@@ -1,5 +1,7 @@
 const assert = require("assert");
+const { spawnSync } = require("child_process");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "../..", "..");
@@ -28,3 +30,32 @@ assert.match(syncRecommended, /cp -RP/, "recommended skills sync should preserve
 assert.doesNotMatch(syncRecommended, /for item in \*\/; do\s+rm -rf "\$item"/, "recommended skills sync must not delete matched paths via naive glob iteration");
 assert.match(syncRecommended, /readlink|test -L|find .* -type d/, "recommended skills sync should explicitly avoid following directory symlinks during cleanup");
 assert.doesNotMatch(alphaVantage, /--- Unknown/, "alpha-vantage frontmatter should not contain malformed delimiters");
+
+{
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "repo-audit-security-"));
+  try {
+    const targetRepo = path.join(tempDir, "target");
+    fs.mkdirSync(targetRepo);
+    fs.writeFileSync(
+      path.join(targetRepo, "README.md"),
+      "[absolute](/etc/passwd)\n[traversal](../../etc/passwd)\n[symlink](linked-secret)\n[missing](docs/missing.md)\n",
+      "utf8",
+    );
+    fs.symlinkSync("/etc/passwd", path.join(targetRepo, "linked-secret"));
+    const scriptPath = path.join(
+      repoRoot,
+      "skills",
+      "openclaw-github-repo-commander",
+      "scripts",
+      "repo-audit.sh",
+    );
+    const result = spawnSync("bash", [scriptPath, targetRepo], { encoding: "utf8" });
+
+    assert.strictEqual(result.status, 1);
+    assert.match(result.stdout, /README local link escapes repository: \/etc\/passwd/);
+    assert.match(result.stdout, /README local link escapes repository: \.\.\/\.\.\/etc\/passwd/);
+    assert.match(result.stdout, /README local link escapes repository: linked-secret/);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}

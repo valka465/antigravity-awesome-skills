@@ -136,7 +136,7 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: ingress-nginx
-        - podSelector:
+          podSelector:
             matchLabels:
               app.kubernetes.io/name: ingress-nginx
       ports:
@@ -153,7 +153,13 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
-    - to: {}                    # Allow DNS resolution (required for service discovery)
+    - to:                       # Allow DNS resolution to cluster DNS only
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
       ports:
         - protocol: UDP
           port: 53
