@@ -155,3 +155,11 @@ For real-estate / e-commerce results, the array shape is API-specific — read a
 - [`references/jobs.md`](references/jobs.md) — Indeed / Glassdoor
 - [`references/youtube.md`](references/youtube.md) — search / video / channel / transcript
 - [`references/all-commands.md`](references/all-commands.md) — full subcommand index with credit costs
+
+
+## Limitations
+
+* Requires access to HasData services and valid credentials.
+* Data quality and available fields depend on the target website and extraction method used.
+* Website changes can impact extraction results and may require adjustments to extraction logic.
+* Rate limits, quotas, and account restrictions may apply depending on the endpoint and subscription plan.
