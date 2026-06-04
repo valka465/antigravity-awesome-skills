@@ -93,3 +93,10 @@ See `references/code-recipes.md` for ready-to-paste Python and TypeScript client
 - API status codes: <https://docs.hasdata.com/api-codes>
 - Credits & concurrency: <https://docs.hasdata.com/credits-and-concurrency>
 - Dashboard: <https://app.hasdata.com>
+
+## Limitations
+
+* Requires access to HasData services and valid credentials.
+* Data quality and available fields depend on the target website and extraction method used.
+* JavaScript-heavy websites may require rendering, which can affect performance and cost.
+* Rate limits, quotas, and account restrictions may apply depending on the endpoint and subscription plan.
