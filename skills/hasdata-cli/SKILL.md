@@ -2,7 +2,11 @@
 name: hasdata-cli
 description: Command-line access to search, scraping, and structured web data.
 risk: safe
-source: community
+source: official
+source_type: official
+source_repo: HasData/hasdata-cli
+license: NOASSERTION
+license_source: "https://github.com/HasData/hasdata-cli"
 date_added: "2026-06-04"
 ---
 
@@ -22,7 +26,7 @@ Use this skill when:
 
 ## Prerequisites
 
-- `command -v hasdata` — if missing, install with `curl -sSL https://raw.githubusercontent.com/HasData/hasdata-cli/main/install.sh | sh`.
+- `command -v hasdata` — if missing, download the installer from `https://raw.githubusercontent.com/HasData/hasdata-cli/main/install.sh`, inspect it, then run it locally with `sh install.sh`.
 - One-time setup: the user runs `hasdata configure`, pastes their API key, and it's saved to `~/.hasdata/config.yaml` (mode 0600). Every future call picks it up automatically.
 - If a call fails with `no API key configured`, the user hasn't run `hasdata configure` yet — tell them to. **Never invent a key.**
 

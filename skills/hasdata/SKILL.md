@@ -2,7 +2,11 @@
 name: hasdata
 description: Use HasData APIs for web scraping and structured web data extraction.
 risk: safe
-source: community
+source: official
+source_type: official
+source_repo: HasData/hasdata-cli
+license: NOASSERTION
+license_source: "https://github.com/HasData/hasdata-cli"
 date_added: "2026-06-04"
 ---
 
