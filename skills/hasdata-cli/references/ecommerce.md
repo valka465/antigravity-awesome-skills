@@ -104,4 +104,3 @@ for d in amazon.com amazon.co.uk amazon.de; do
     | jq '{currency: .currency, price: .price}'
 done
 ```
-

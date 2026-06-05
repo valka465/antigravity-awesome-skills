@@ -102,7 +102,7 @@ YellowPages is US-only — EU/APAC searches return nothing useful.
 
 ### Lead-gen with emails (Maps + Web Scraping)
 
-Maps results have website + phone but **not email**. Combine with the Web Scraping API's `extractEmails`:
+Maps results have website + phone but **not email**. Combine with the Web Scraping API's `extractEmails` only for public business contact pages, legitimate outreach, and workflows that honor opt-out, privacy-law, rate, and terms-of-service constraints:
 
 ```python
 leads = []
@@ -123,7 +123,7 @@ for biz in maps_results.get("localResults", []):
     })
 ```
 
-For high volume, switch to the `contacts` Scraper Job (see `scraper-jobs.md`).
+For higher volume, switch to the `contacts` Scraper Job (see `scraper-jobs.md`) only when you have a legitimate purpose, a compliant outreach process, and rate/opt-out controls.
 
 ### New-business discovery
 

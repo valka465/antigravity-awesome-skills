@@ -5,8 +5,8 @@ risk: safe
 source: official
 source_type: official
 source_repo: HasData/hasdata-cli
-license: NOASSERTION
-license_source: "https://github.com/HasData/hasdata-cli"
+license: MIT
+license_source: "https://github.com/HasData/hasdata-cli/blob/main/LICENSE"
 date_added: "2026-06-04"
 ---
 
@@ -94,11 +94,11 @@ The user often won't ask for a SERP API or a scraper directly. Map these intents
 - **"List of items → per-item details"** — Pattern: search command produces IDs/URLs, pipe through `xargs` into the matching `*-property` / `*-product` / `*-place` deep-dive command.
 - **"Find this person's role / employer / LinkedIn / followers"** — `google-serp --q '"Person Name" linkedin'` first. The organic-result title is typically `Name — Role at Company | LinkedIn` and the snippet carries location, headline, connection count. SERP often answers the whole question without ever opening the profile page.
 - **"What is company X doing? Where's their HQ? Who works there?"** — `google-serp --q "$COMPANY"` returns a `.knowledge_graph` block with founder, HQ, founded year, parent, employee range — pre-extracted. `google-news --q "$COMPANY"` for recent activity. Specific facts via targeted SERP: `--q '"$COMPANY" headquarters'`, `--q '"$COMPANY" funding'`, `--q 'site:linkedin.com/company "$COMPANY"'`.
-- **"Find emails for company X" / "personal email for person Y"** — start with SERP: `--q '"@example.com"'` or `--q '"jane@example.com"'` often surfaces actual emails indexed by Google. Pattern-guess + SERP-verify for individuals. Disclose unverified guesses to the user.
+- **"Find public contact channels for company X"** — start with SERP: `--q '"@example.com"'` often surfaces publicly indexed business addresses. For personal emails or phone numbers, require a legitimate purpose, user authorization, and privacy-law/terms compliance; disclose unverified guesses.
 - **"Enrich this CSV of leads"** — per row: `google-serp` for LinkedIn, role, employer; another SERP to verify email or pattern. Stay in SERP unless a specific field is missing.
 - **Reverse-lookup (email / phone / domain → identity)** — `google-serp` with the literal value in quotes (`--q '"jane@x.com"'`, `--q '"+1 555 123 4567"'`, `--q '"acme corp" site:example.com'`) almost always surfaces the matching person or business.
 
-**SERP-first principle**: for any data-enrichment intent (people, companies, emails, products, places), reach for `google-serp` / `google-news` / `google-shopping` / `google-maps` first. They return Google's already-extracted structured fields (`.knowledge_graph`, `.organic_results[].snippet`, `.local_results[]`, etc.) and bypass anti-bot. Only escalate to `web-scraping` when SERP doesn't surface the specific field you need — it's the last resort, not the default. See `references/enrichment.md`.
+**SERP-first principle**: for any data-enrichment intent (people, companies, emails, products, places), reach for `google-serp` / `google-news` / `google-shopping` / `google-maps` first. They return Google's already-extracted structured fields (`.knowledge_graph`, `.organic_results[].snippet`, `.local_results[]`, etc.) without direct access to the target site. Only escalate to `web-scraping` when SERP doesn't surface the specific field you need, the data is public or authorized, and the target's terms/access controls allow it. See `references/enrichment.md`.
 
 If a user request matches one of the above and you don't invoke hasdata, you're probably hallucinating a stale answer.
 

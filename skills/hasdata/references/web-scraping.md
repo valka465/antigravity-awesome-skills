@@ -2,7 +2,7 @@
 
 One endpoint to fetch any URL, optionally with JS rendering, proxies, AI extraction, and screenshots. Synchronous.
 
-> Reach for this only when the user gave you a specific URL, or when no Scraper API covers the field. Otherwise the platform-specific APIs return pre-extracted JSON and bypass anti-bot.
+> Reach for this only when the user gave you a specific URL, or when no Scraper API covers the field. Otherwise the platform-specific APIs return pre-extracted JSON without direct page access. Use only for public pages or content the user is authorized to access.
 
 ## Minimal request
 
@@ -36,7 +36,7 @@ print(resp.text)            # raw markdown — no JSON parsing
 |---|---|---|
 | `url` | string | **Required.** Absolute URL. |
 | `outputFormat` | string[] | `html`, `text`, `markdown`, `json`. **Single non-JSON format → raw content as the body** (not JSON-wrapped); multiple formats → JSON object with one key per format. Always include `"json"` (or another format) when you also need `requestMetadata`. |
-| `proxyType` | enum | `datacenter` (default) or `residential` — use residential only when datacenter IPs get blocked. |
+| `proxyType` | enum | `datacenter` (default) or `residential` — use residential only for authorized geo/availability testing where terms and access controls permit it. |
 | `proxyCountry` | string | ISO 3166-1 alpha-2 — `US`, `UK`, `DE`, `FR`, `IT`, `SE`, `BR`, `CA`, `JP`, `SG`, `IN`, `ID`, `IE`. |
 | `jsRendering` | bool | Headless browser — required for SPAs and dynamically-injected content. |
 | `wait` / `waitFor` | int (ms) / CSS string | Fixed delay vs. wait-until-selector. Prefer `waitFor`. |
@@ -110,7 +110,7 @@ Actions: `click`, `fill: [sel, val]`, `wait: ms`, `waitFor: sel`, `waitForAndCli
 }
 ```
 
-Capture cookies once in a real browser (devtools → Storage → Cookies), forward via the `Cookie` header. Only with explicit user permission.
+Capture cookies once in a real browser (devtools → Storage → Cookies), forward via the `Cookie` header. Only with explicit user permission and authority to access that account/content; never use cookies to bypass someone else's access controls.
 
 ## Slim response & speed
 

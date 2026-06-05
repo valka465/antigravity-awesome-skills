@@ -92,11 +92,11 @@ hasdata yellowpages-place --url "https://www.yellowpages.com/atlanta-ga/mip/..."
 
 ## Non-obvious use cases
 
-- **Sales-lead generation** — `google-maps --q "INDUSTRY" --ll "@LAT,LNG,12z"` to enumerate competitors/prospects, then `xargs` into `google-maps-place` for phone/email/website.
+- **Sales-lead research** — `google-maps --q "INDUSTRY" --ll "@LAT,LNG,12z"` to enumerate businesses, then `xargs` into `google-maps-place` for public phone/website details. Use email collection only for legitimate business outreach with opt-out, privacy-law, and rate-limit controls.
 - **Reputation monitoring** — `google-maps-reviews --place-id X --sort lowest` returns the worst reviews first; great for surfacing crisis signals fast. Run weekly to detect new 1-star drops.
 - **"Is this business open?"** — `google-maps-place --place-id X --raw | jq '.hours'` for current hours; also surfaces `permanently_closed` status.
 - **Verify an address user gave you** — `google-maps --q "BUSINESS NAME, CITY" --raw | jq '.local_results[0].address'`. Don't trust user-provided addresses for high-stakes actions (mailing, payments).
-- **Phone-number / email lookup** — `google-maps-place` includes phone and website; `web-scraping --url WEBSITE --extract-emails` (default-on) returns emails parsed from the homepage. Combine for full contact detail.
+- **Public business contact lookup** — `google-maps-place` includes phone and website; `web-scraping --url WEBSITE --extract-emails` returns emails parsed from the homepage. Use only for public business contact channels and disclose uncertainty.
 - **Competitive-density mapping** — `google-maps --q "coffee shop" --ll "@LAT,LNG,Zz"` at varying zoom levels; aggregate `.local_results[]` into a CSV with addresses + ratings to find under-served zones.
 - **Service-area validation** — chain `yelp-search --location "CITY"` for a few cities to confirm a business with the same name covers them.
 - **Find recently opened businesses** — `google-maps-place` returns `description.years_in_business` and posts/updates timestamps; sort.

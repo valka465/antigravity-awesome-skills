@@ -1,19 +1,19 @@
 # Data enrichment
 
-Enriching a name, email, domain, or row of a CSV with public data. The highest-leverage workflow this skill enables — turning a sparse list (just names) into a structured dataset (name + role + employer + LinkedIn + emails + company HQ + recent activity).
+Enriching a company, domain, or authorized contact list with public data. Use these workflows only for permitted business research or user-authorized contact enrichment, and respect site terms, robots/access controls, privacy law, opt-out obligations, and rate limits.
 
 ## SERP first. Web-scraping is the last resort.
 
 `google-serp` is your primary enrichment tool. Reasons:
 
 - **Google has already extracted the structured fields you want.** `.knowledge_graph` carries HQ, founder, founded year, parent company, employees, industry. `.organic_results[]` titles and snippets carry person → role → employer mappings (LinkedIn titles are literally `Name — Role at Company`). `.local_results[]` carry phone/address/hours.
-- **It bypasses anti-bot.** Many target sites (LinkedIn, Crunchbase, Glassdoor) gate or rate-limit direct access. Google's snippets reflect the same data without you needing to render their JS or get a 403.
-- **It's the catch-all reverse index.** Quoted queries (`--q '"jane@example.com"'`, `--q '"+1 555 123 4567"'`, `--q '"Acme Corp"'`) work as a universal lookup over the entire indexed web.
+- **It avoids unnecessary direct access.** Many target sites gate, rate-limit, or restrict scraping. Google's snippets can answer public, high-level questions without rendering the target page.
+- **It's a broad public index.** Quoted queries (`--q '"info@example.com"'`, `--q '"+1 555 123 4567"'`, `--q '"Acme Corp"'`) can find publicly indexed business contact or company references.
 
 Use `google-serp` (or `google-news` for recency, `google-maps` for places, `google-shopping` for products) **first**. Only fall through to `web-scraping` when:
 - A specific field you need isn't in any SERP snippet, AND
 - The target page renders that field server-side or via JS that the scraper can handle, AND
-- The user explicitly needs it (don't fan out to N web-scraping calls when SERP would have answered N − 0 of them).
+- The user explicitly needs it and has authority to access it (don't fan out to N web-scraping calls when SERP would have answered N - 0 of them).
 
 The patterns below show the full chain so you understand when to escalate. Most rows in a real CSV stop after step 1 or 2.
 
@@ -61,7 +61,7 @@ hasdata google-serp --q '"Jane Doe" bio OR background OR experience' --num 5 --r
 
 ### Step 3 — Web-scraping (only if SERP came up short)
 
-When SERP snippets truncated the field you need, or the user explicitly wants the full profile content:
+When SERP snippets truncated the field you need, or the user explicitly wants full profile content, first confirm the profile is public or the user has authorization to access it:
 
 ```bash
 hasdata web-scraping --url "https://www.linkedin.com/in/janedoe" \
@@ -91,7 +91,7 @@ LinkedIn sometimes blocks the public preview; if it does, fall back to step 2 (c
 
 ### Email lookup
 
-Triangulate, don't promise. SERP first, scraping last.
+Triangulate, don't promise. Use this only for business contact discovery, user-authorized enrichment, or another legitimate purpose. SERP first, scraping last; never present a guessed personal email as verified.
 
 ```bash
 # 1. Has Google already indexed the email anywhere?
@@ -110,12 +110,12 @@ for guess in "jane.doe" "jdoe" "jane" "j.doe" "janed"; do
   [ "$count" -gt 0 ] && echo "$guess@acme.com  (appears in SERP)"
 done
 
-# 4. Last resort — scrape the company's contact / about / team pages for emails
+# 4. Last resort — scrape the company's public contact / about / team pages for emails
 hasdata web-scraping --url "https://acme.com/about" --extract-emails --raw \
   | jq -r '.emails // [] | .[]'
 ```
 
-Always tell the user when an email is a pattern-guess vs. confirmed via SERP/scrape.
+Always tell the user when an email is a pattern-guess vs. confirmed via SERP/scrape, and avoid collecting personal contact data when the user lacks authorization.
 
 ---
 
@@ -195,14 +195,14 @@ That's it. One SERP call per row, role/employer/LinkedIn extracted from the titl
 
 ## Reverse-lookup
 
-Always SERP-first with the literal value quoted.
+Always SERP-first with the literal value quoted. Use reverse lookup only for user-authorized investigation, business contact verification, or another legitimate purpose; do not use it for doxxing, stalking, harassment, or collecting private personal data.
 
 ```bash
-# Email → identity
+# Business email → public identity signal
 hasdata google-serp --q '"jane@example.com"' --num 10 --raw \
   | jq -c '.organic_results[] | {title, snippet, link}'
 
-# Phone → owner / business
+# Business phone → owner / business
 hasdata google-serp --q '"+1 555 123 4567"' --num 10 --raw
 # Combine with yelp-search / yellowpages-search if it's a business number.
 
@@ -224,3 +224,4 @@ Only scrape the domain (`web-scraping --url "https://example.com"`) when you spe
 - **AI-extract over CSS selectors** when you do need to scrape — LinkedIn / Crunchbase / About-page markup changes constantly; AI extraction with field names + descriptions survives layout churn.
 - **Cross-source verify** — never enrich from a single source. If LinkedIn's title says "Acme Corp" and a `--q '"Jane Doe" "Acme Corp"'` SERP corroborates with multiple results, confidence is high.
 - **Mark guesses** — pattern-guessed emails, inferred locations, single-source roles should be flagged to the user as unverified.
+- **Respect privacy and authorization** — do not collect or infer personal contact details without a legitimate purpose and user authority.

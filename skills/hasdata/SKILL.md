@@ -5,8 +5,8 @@ risk: safe
 source: official
 source_type: official
 source_repo: HasData/hasdata-cli
-license: NOASSERTION
-license_source: "https://github.com/HasData/hasdata-cli"
+license: MIT
+license_source: "https://github.com/HasData/hasdata-cli/blob/main/LICENSE"
 date_added: "2026-06-04"
 ---
 
@@ -52,11 +52,11 @@ Treat data as valid only if `requestMetadata.status === "ok"`. HTTP 200 alone is
 
 ## High-leverage patterns
 
-- **SERP-first enrichment.** Google SERP is a free-form data lake. `q="<Person> <Company> linkedin"` → `organicResults[0].title` + `.snippet` already carries role + location, no profile-page scrape needed. Same recipe with `crunchbase`, `wikipedia`, `github`, or quoted literals (`"jane@x.com"`, `"+1 555 …"`) for reverse lookup.
+- **SERP-first enrichment.** Google SERP can surface public snippets for company and professional-profile lookup. Use it for business or authorized research, avoid unnecessary direct scraping, and treat personal email/phone lookup as allowed only with a legitimate purpose and user authorization.
 - **AI Mode + verify.** `/scrape/google/ai-mode` for the answer + references → `/scrape/web` (markdown) on each reference URL → cited RAG context, no vector DB.
-- **Maps → leads.** `/scrape/google-maps/search` returns websites + phones; fan out to `/scrape/web` with `extractEmails: true` for full lead rows.
+- **Maps → leads.** `/scrape/google-maps/search` returns business websites and phones; collect contact details only from public, permitted sources and apply opt-out, rate, and privacy-law constraints before any outreach use.
 - **Crawler → corpus.** `crawler` Scraper Job with `outputFormat: ["markdown"]` + `includePaths: "/docs/.+"` produces an LLM-ready corpus in one submission.
-- **Pre-extracted via SERP rich snippets.** `knowledgeGraph`, `localResults`, `inlineShoppingResults`, `relatedQuestions` carry pre-parsed facts that bypass anti-bot. Always check them before scraping.
+- **Pre-extracted via SERP rich snippets.** `knowledgeGraph`, `localResults`, `inlineShoppingResults`, `relatedQuestions` carry pre-parsed public facts. Always check them before considering direct page access.
 
 ## When to call from code (the wiring)
 
@@ -103,4 +103,5 @@ See `references/code-recipes.md` for ready-to-paste Python and TypeScript client
 * Requires access to HasData services and valid credentials.
 * Data quality and available fields depend on the target website and extraction method used.
 * JavaScript-heavy websites may require rendering, which can affect performance and cost.
+* Use only for public data or content the user is authorized to access; respect site terms, robots/access controls, privacy law, and rate limits.
 * Rate limits, quotas, and account restrictions may apply depending on the endpoint and subscription plan.
